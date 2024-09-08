@@ -1,0 +1,125 @@
+import tkinter as tk
+from tkinter import messagebox, ttk
+
+# Create the main app window
+root = tk.Tk()
+root.title("To-Do List App")
+root.geometry("450x600")
+root.config(bg="#ffe6e6")  # Pastel pink background color
+
+# List to hold task details
+tasks = []
+task_vars = []
+priorities = []
+
+# Colors for task priorities
+priority_colors = {
+    "High": "red",
+    "Medium": "orange",
+    "Low": "green"
+}
+
+def update_task_display(filtered_priority="All"):
+    # Clear the frame where checkboxes are displayed
+    for widget in task_frame.winfo_children():
+        widget.destroy()
+
+    # Recreate the checkboxes for each task, filtered by priority
+    for i, task in enumerate(tasks):
+        if filtered_priority == "All" or priorities[i] == filtered_priority:
+            var = task_vars[i]
+            # Create Checkbutton with the appropriate color based on priority, without displaying priority text
+            cb = tk.Checkbutton(task_frame, text=task, variable=var, onvalue=1, offvalue=0, font=("Helvetica", 12), bg="#ffe6e6", anchor="w", fg=priority_colors[priorities[i]])
+            cb.pack(fill="x", padx=10, pady=5)
+
+def add_task():
+    task = task_entry.get()
+    priority = priority_var.get()
+
+    if task != "" and priority != "Select Priority":
+        tasks.append(task)
+        priorities.append(priority)
+        var = tk.IntVar()  # Create a variable to track checkbox state
+        task_vars.append(var)
+        update_task_display(filter_var.get())
+        task_entry.delete(0, tk.END)
+        priority_var.set("Select Priority")
+    else:
+        messagebox.showwarning("Input Error", "Please enter a task and select a priority.")
+
+def delete_task():
+    selected_tasks = [i for i, var in enumerate(task_vars) if var.get() == 1]
+    
+    if selected_tasks:
+        for i in sorted(selected_tasks, reverse=True):
+            tasks.pop(i)
+            priorities.pop(i)
+            task_vars.pop(i)
+        update_task_display(filter_var.get())
+    else:
+        messagebox.showwarning("Selection Error", "Please select a task to delete by ticking its checkbox.")
+
+def edit_task():
+    selected_tasks = [i for i, var in enumerate(task_vars) if var.get() == 1]
+    
+    if len(selected_tasks) == 1:
+        task_num = selected_tasks[0]
+        new_task = task_entry.get()
+        new_priority = priority_var.get()
+        if new_task != "" and new_priority != "Select Priority":
+            tasks[task_num] = new_task
+            priorities[task_num] = new_priority
+            update_task_display(filter_var.get())
+            task_entry.delete(0, tk.END)
+            priority_var.set("Select Priority")
+        else:
+            messagebox.showwarning("Input Error", "Please enter a new task and select a priority.")
+    else:
+        messagebox.showwarning("Selection Error", "Please select exactly one task to edit.")
+
+def filter_tasks():
+    filtered_priority = filter_var.get()
+    update_task_display(filtered_priority)
+
+# GUI Layout
+# Task list label (Bigger and in uppercase, calligraphy font)
+task_label = tk.Label(root, text="TASKS", font=("Lucida Calligraphy", 20, "bold"), bg="#ffe6e6")  # Calligraphy font
+task_label.pack(pady=10)
+
+# Frame to hold the tasks and checkboxes
+task_frame = tk.Frame(root, bg="#ffe6e6")
+task_frame.pack(pady=10, padx=10, fill="both", expand=True)
+
+# Entry box for adding or editing tasks (reverted to normal font)
+task_entry = tk.Entry(root, font=("Helvetica", 12), width=26)
+task_entry.pack(pady=10)
+
+# Dropdown menu for selecting task priority (reverted to normal font)
+priority_var = tk.StringVar(value="Select Priority")
+priority_menu = ttk.Combobox(root, textvariable=priority_var, values=["High", "Medium", "Low"], font=("Helvetica", 12), state="readonly")
+priority_menu.pack(pady=5)
+
+# Buttons for adding, editing, and deleting tasks (with black boxes)
+button_frame = tk.Frame(root, bg="#ffe6e6")
+button_frame.pack(pady=10)
+
+add_button = tk.Button(button_frame, text="Add Task", font=("Helvetica", 12, "bold"), width=10, command=add_task, bg="#66b3ff", fg="black", bd=2, highlightbackground="black")
+add_button.grid(row=0, column=0, padx=10)
+
+edit_button = tk.Button(button_frame, text="Edit Task", font=("Helvetica", 12, "bold"), width=10, command=edit_task, bg="#ffcc66", fg="black", bd=2, highlightbackground="black")
+edit_button.grid(row=0, column=1, padx=10)
+
+delete_button = tk.Button(button_frame, text="Delete Task", font=("Helvetica", 12, "bold"), width=10, command=delete_task, bg="#ff6666", fg="black", bd=2, highlightbackground="black")
+delete_button.grid(row=0, column=2, padx=10)
+
+# Dropdown menu for filtering tasks by priority (reverted to normal font)
+filter_var = tk.StringVar(value="All")
+filter_menu = ttk.Combobox(root, textvariable=filter_var, values=["All", "High", "Medium", "Low"], font=("Helvetica", 12), state="readonly")
+filter_menu.pack(pady=5)
+
+# Button to apply filter (with black box)
+filter_button = tk.Button(root, text="Filter Tasks", font=("Helvetica", 12, "bold"), command=filter_tasks, bg="#66cc66", fg="black", bd=2, highlightbackground="black")
+filter_button.pack(pady=10)
+
+# Start the app
+root.mainloop()
